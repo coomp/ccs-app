@@ -6,9 +6,16 @@ import (
 	ccssdk "github.com/coomp/ccs-sdk"
 )
 
-func NewExampleHandler() ccssdk.HandleFunc {
-	return func(c ccssdk.MessageContext) error {
-		fmt.Printf("ExampleHandle got message at %v\n", c.GetTimestamp())
+func NewExampleRequestHandler() ccssdk.RequestHandleFunc {
+	return func(c ccssdk.RequestMessageContext) error {
+		fmt.Printf("NewExampleRequestHandler got message at %v\n", c.GetTimestamp())
+		return nil
+	}
+}
+
+func NewExampleResponseHandler() ccssdk.ResponseHandleFunc {
+	return func(c ccssdk.ResponseMessageContext) error {
+		fmt.Printf("NewExampleResponseHandler got message at %v\n", c.GetTimestamp())
 		return nil
 	}
 }

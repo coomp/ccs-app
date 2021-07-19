@@ -13,4 +13,5 @@
 
 ## Development
 
-+ 
++ follow handler/example.go to create your own req/resp handlers
++ follow main.go/echo/HandleMessage to send your own messages

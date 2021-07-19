@@ -2,11 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/coomp/ccs-app/handler"
 	ccssdk "github.com/coomp/ccs-sdk"
 )
+
+type App struct {
+	Sdk *ccssdk.CcsSdk
+}
 
 type MovieTicketBookRequest struct {
 	Username        string // 用户名
@@ -15,7 +20,7 @@ type MovieTicketBookRequest struct {
 	Timestamp       string // 请求时间戳
 }
 
-func echo(w http.ResponseWriter, req *http.Request) {
+func (a *App) echo(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		w.Write([]byte("HTTP POST required"))
 	}
@@ -27,17 +32,30 @@ func echo(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	// TODO send msg to ccs gateway using sdk through grpc
+	// check if tickt param is valid
+
+	// send msg to ccs gateway using sdk through grpc
+	bytes, _ := json.Marshal(ticketReq)
+	a.Sdk.HandleMessage(string(bytes), true, 3)
 }
 
+var app App
+
 func main() {
-	// Init CCS SDK
-	handles := ccssdk.NewEmpty()
-	handles = append(handles, handler.NewExampleHandler())
+
+	requestHandlers := append(ccssdk.NewEmptyRequestHandlers(), handler.NewExampleRequestHandler())
+	responseHandlers := append(ccssdk.NewEmptyResponseHandlers(), handler.NewExampleResponseHandler())
 	// TODO add your handles here
-	ccssdk.InitCcsSdk(handles)
+
+	// Init CCS SDK
+	sdk, err := ccssdk.NewCcsSdk(requestHandlers, responseHandlers)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	app.Sdk = sdk
 
 	// Business code here, if pure CCS service, ignore and remove code blow
-	http.HandleFunc("/echo", echo)
+	http.HandleFunc("/echo", app.echo)
 	http.ListenAndServe(":8090", nil)
 }
